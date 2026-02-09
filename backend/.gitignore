@@ -1,0 +1,86 @@
+# -------------------------------------
+# Java
+# -------------------------------------
+*.class
+*.war
+*.ear
+*.jar
+*.jpi
+
+# Log files
+*.log
+
+# Package files
+*.zip
+*.tar.gz
+*.rar
+
+# -------------------------------------
+# Maven
+# -------------------------------------
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# -------------------------------------
+# Gradle
+# -------------------------------------
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+**/out/
+
+# Gradle caches
+.gradle/
+build/
+**/build/
+
+# -------------------------------------
+# Spring Boot
+# -------------------------------------
+# Spring Boot devtools working directory
+.spring-boot-devtools
+
+# -------------------------------------
+# IntelliJ IDEA
+# -------------------------------------
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# IntelliJ output directories
+out/
+
+# -------------------------------------
+# Eclipse
+# -------------------------------------
+.classpath
+.project
+.settings/
+.eclipse/
+
+# -------------------------------------
+# VS Code
+# -------------------------------------
+.vscode/
+
+# -------------------------------------
+# OS and Temporary Files
+# -------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# -------------------------------------
+# Node (if frontend inside Spring Boot project)
+# -------------------------------------
+node_modules/
+dist/
+package-lock.json
+.yarn/
+.pnpm-store/
