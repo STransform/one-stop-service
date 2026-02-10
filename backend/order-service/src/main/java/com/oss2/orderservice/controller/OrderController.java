@@ -31,6 +31,11 @@ public class OrderController {
         return orderService.placeOrder(order, userId);
     }
 
+    @GetMapping
+    public List<Order> getAllOrders() {
+        return orderService.getAllOrders();
+    }
+
     @GetMapping("/my-orders")
     public List<Order> getMyOrders(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();

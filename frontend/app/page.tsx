@@ -1,6 +1,15 @@
 import Link from 'next/link';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
+  if (session) {
+    redirect('/admin');
+  }
+
   return (
     <div className="bg-white">
       {/* Hero Section */}
@@ -14,13 +23,10 @@ export default function Home() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Link
-              href="/books"
+              href="/api/auth/signin?callbackUrl=/admin"
               className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-              Browse Library
-            </Link>
-            <Link href="/orders" className="text-sm font-semibold leading-6 text-gray-900">
-              View My Orders <span aria-hidden="true">→</span>
+              Sign In to Admin Panel
             </Link>
           </div>
         </div>

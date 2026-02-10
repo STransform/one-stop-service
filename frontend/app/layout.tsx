@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
-import Navbar from '@/components/Navbar';
+import NavbarWrapper from '@/components/NavbarWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,7 +23,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers>
-          <Navbar />
+          <NavbarWrapper />
           <main className="container mx-auto p-4">
             {children}
           </main>

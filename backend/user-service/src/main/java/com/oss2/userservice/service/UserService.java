@@ -20,4 +20,8 @@ public class UserService {
     public UserProfile getUserById(String id) {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    public java.util.List<UserProfile> getAllUsers() {
+        return userRepository.findAll();
+    }
 }

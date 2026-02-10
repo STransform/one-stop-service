@@ -27,6 +27,17 @@ export const authOptions: NextAuthOptions = {
             session.roles = token.roles as string[];
             return session;
         },
+        async redirect({ url, baseUrl }) {
+            // If the url is the base url, redirect to /admin
+            if (url === baseUrl) {
+                return `${baseUrl}/admin`;
+            }
+            // Allows relative callback URLs
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            // Allows callback URLs on the same origin
+            else if (new URL(url).origin === baseUrl) return url;
+            return baseUrl;
+        },
     },
     events: {
         async signOut({ token }) {

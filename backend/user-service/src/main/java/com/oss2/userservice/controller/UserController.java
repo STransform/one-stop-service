@@ -16,6 +16,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping
+    public java.util.List<UserProfile> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
     @GetMapping("/me")
     public UserProfile getMe(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
