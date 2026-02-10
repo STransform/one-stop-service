@@ -1,8 +1,9 @@
-package com.oss2.productservice.client;
+package com.oss2.common.form.client;
 
-import com.oss2.productservice.dto.FormSchemaDTO;
-import com.oss2.productservice.dto.FormSubmissionDTO;
+import com.oss2.common.form.dto.FormSchemaDTO;
+import com.oss2.common.form.dto.FormSubmissionDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,7 +15,9 @@ import java.util.Map;
 public class FormServiceClient {
     
     private final RestTemplate restTemplate;
-    private static final String FORM_SERVICE_URL = "http://form-service";
+
+    @Value("${form.service.url:http://form-service}")
+    private String formServiceUrl;
     
     /**
      * Get a form schema by ID
@@ -22,7 +25,7 @@ public class FormServiceClient {
     public FormSchemaDTO getForm(Long formId) {
         try {
             return restTemplate.getForObject(
-                FORM_SERVICE_URL + "/api/forms/" + formId,
+                formServiceUrl + "/api/forms/" + formId,
                 FormSchemaDTO.class
             );
         } catch (Exception e) {
@@ -40,7 +43,7 @@ public class FormServiceClient {
             requestBody.put("submissionData", data);
             
             return restTemplate.postForObject(
-                FORM_SERVICE_URL + "/api/submissions",
+                formServiceUrl + "/api/submissions",
                 requestBody,
                 FormSubmissionDTO.class
             );
@@ -55,7 +58,7 @@ public class FormServiceClient {
     public FormSubmissionDTO[] getFormSubmissions(Long formSchemaId) {
         try {
             return restTemplate.getForObject(
-                FORM_SERVICE_URL + "/api/submissions/form/" + formSchemaId,
+                formServiceUrl + "/api/submissions/form/" + formSchemaId,
                 FormSubmissionDTO[].class
             );
         } catch (Exception e) {

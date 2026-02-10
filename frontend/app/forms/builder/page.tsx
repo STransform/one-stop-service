@@ -49,11 +49,11 @@ export default function BuilderPage() {
         setSaving(true);
         try {
             const saved = await saveFormSchema(formTitle, JSON.stringify(schema));
-            alert(`✅ Form saved successfully! ID: ${saved.id}`);
+            alert(`Form saved successfully! ID: ${saved.id}`);
             console.log('Saved form:', saved);
         } catch (error) {
             console.error('Error saving form:', error);
-            alert('❌ Failed to save form. Make sure your backend is running!');
+            alert('Failed to save form. Make sure your backend is running!');
         } finally {
             setSaving(false);
         }
@@ -81,14 +81,14 @@ export default function BuilderPage() {
                                 href="/forms/list"
                                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
                             >
-                                📋 My Forms
+                                My Forms
                             </Link>
                             <button
                                 onClick={handleSaveToBackend}
                                 disabled={!schema || saving}
                                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {saving ? 'Saving...' : '💾 Save to Backend'}
+                                {saving ? 'Saving...' : 'Save to Backend'}
                             </button>
                             <button
                                 onClick={handleExportJSON}

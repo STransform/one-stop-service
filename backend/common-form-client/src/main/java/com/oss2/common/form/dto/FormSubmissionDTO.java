@@ -1,4 +1,4 @@
-package com.oss2.productservice.dto;
+package com.oss2.common.form.dto;
 
 import lombok.Data;
 import java.util.Map;

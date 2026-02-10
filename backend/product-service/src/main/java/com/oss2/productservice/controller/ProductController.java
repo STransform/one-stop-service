@@ -1,7 +1,7 @@
 package com.oss2.productservice.controller;
 
-import com.oss2.productservice.client.FormServiceClient;
-import com.oss2.productservice.dto.FormSubmissionDTO;
+import com.oss2.common.form.client.FormServiceClient;
+import com.oss2.common.form.dto.FormSubmissionDTO;
 import com.oss2.productservice.model.Product;
 import com.oss2.productservice.service.ProductService;
 import com.oss2.productservice.service.FormFieldMapper;
@@ -145,7 +145,7 @@ public class ProductController {
             // If not provided, try to fetch from service (fallback)
             if (schemaJson == null || schemaJson.isEmpty()) {
                 try {
-                    com.oss2.productservice.dto.FormSchemaDTO formSchema = formServiceClient.getForm(formId);
+                    com.oss2.common.form.dto.FormSchemaDTO formSchema = formServiceClient.getForm(formId);
                     if (formSchema != null) {
                         schemaJson = formSchema.getSchemaJson();
                         System.out.println("DEBUG: Fetched schema for form " + formId);

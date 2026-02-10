@@ -1,8 +1,8 @@
 package com.oss2.productservice.service;
 
 import com.oss2.productservice.model.Product;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.oss2.common.form.util.FormMappingUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -15,7 +15,7 @@ import java.util.Map;
 @Component
 public class FormFieldMapper {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
     
     /**
      * Maps form submission data to a Product entity
@@ -33,58 +33,39 @@ public class FormFieldMapper {
         System.out.println("DEBUG: FormFieldMapper received keys: " + formData.keySet());
         
         // Build label-to-ID mapping from schema if provided
-        Map<String, String> labelToIdMap = new HashMap<>();
-        if (schemaJson != null && !schemaJson.isEmpty()) {
-            try {
-                JsonNode root = objectMapper.readTree(schemaJson);
-                JsonNode fields = root.get("fields");
-                if (fields != null && fields.isArray()) {
-                    for (JsonNode field : fields) {
-                        String id = field.path("id").asText();
-                        String label = field.path("label").asText();
-                        if (!id.isEmpty() && !label.isEmpty()) {
-                            labelToIdMap.put(label.toLowerCase().trim(), id);
-                            labelToIdMap.put(label.toLowerCase().replace(" ", ""), id);
-                        }
-                    }
-                }
-                System.out.println("DEBUG: Schema mapping: " + labelToIdMap);
-            } catch (Exception e) {
-                System.err.println("WARN: Failed to parse schemaJson: " + e.getMessage());
-            }
-        }
+        Map<String, String> labelToIdMap = FormMappingUtils.buildLabelToIdMap(schemaJson);
         
         Product product = new Product();
         
         // Map with flexible field names and schema support
-        String name = getFieldValue(formData, labelToIdMap, "name", "Name", "Product Name", "productName", "product_name");
+        String name = FormMappingUtils.getFieldValue(formData, labelToIdMap, "name", "Name", "Product Name", "productName", "product_name");
         product.setName(name != null && !name.isEmpty() ? name : "Draft Product (from Form)");
         
-        String description = getFieldValue(formData, labelToIdMap, "description", "Description", "Product Description", "productDescription", "product_description", "Details");
+        String description = FormMappingUtils.getFieldValue(formData, labelToIdMap, "description", "Description", "Product Description", "productDescription", "product_description", "Details");
         product.setDescription(description != null && !description.isEmpty() ? description : "");
         
-        String category = getFieldValue(formData, labelToIdMap, "category", "Category", "Product Category", "productCategory", "product_category", "Type");
+        String category = FormMappingUtils.getFieldValue(formData, labelToIdMap, "category", "Category", "Product Category", "productCategory", "product_category", "Type");
         product.setCategory(category != null && !category.isEmpty() ? category : "General");
         
-        String brand = getFieldValue(formData, labelToIdMap, "brand", "Brand", "Manufacturer", "brandName", "brand_name");
+        String brand = FormMappingUtils.getFieldValue(formData, labelToIdMap, "brand", "Brand", "Manufacturer", "brandName", "brand_name");
         product.setBrand(brand != null && !brand.isEmpty() ? brand : "Unknown");
         
-        String sku = getFieldValue(formData, labelToIdMap, "sku", "SKU", "Product Code", "productCode", "product_code", "Code");
+        String sku = FormMappingUtils.getFieldValue(formData, labelToIdMap, "sku", "SKU", "Product Code", "productCode", "product_code", "Code");
         product.setSku(sku != null && !sku.isEmpty() ? sku : "N/A");
         
-        Double price = getDoubleValue(formData, labelToIdMap, "price", "Price", "Cost", "Amount", "unitPrice", "unit_price");
+        Double price = FormMappingUtils.getDoubleValue(formData, labelToIdMap, "price", "Price", "Cost", "Amount", "unitPrice", "unit_price");
         product.setPrice(price != null ? price : 0.0);
         
-        Integer stock = getIntegerValue(formData, labelToIdMap, "stock", "Stock", "Quantity", "Available", "Inventory", "stockQuantity", "stock_quantity");
+        Integer stock = FormMappingUtils.getIntegerValue(formData, labelToIdMap, "stock", "Stock", "Quantity", "Available", "Inventory", "stockQuantity", "stock_quantity");
         product.setStock(stock != null ? stock : 0);
         
-        String imageUrl = getFieldValue(formData, labelToIdMap, "imageUrl", "image_url", "Image URL", "Image", "Picture", "Photo");
+        String imageUrl = FormMappingUtils.getFieldValue(formData, labelToIdMap, "imageUrl", "image_url", "Image URL", "Image", "Picture", "Photo");
         product.setImageUrl(imageUrl);
         
-        Double weight = getDoubleValue(formData, labelToIdMap, "weight", "Weight", "productWeight", "product_weight");
+        Double weight = FormMappingUtils.getDoubleValue(formData, labelToIdMap, "weight", "Weight", "productWeight", "product_weight");
         product.setWeight(weight);
         
-        String dimensions = getFieldValue(formData, labelToIdMap, "dimensions", "Dimensions", "Size", "productDimensions", "product_dimensions");
+        String dimensions = FormMappingUtils.getFieldValue(formData, labelToIdMap, "dimensions", "Dimensions", "Size", "productDimensions", "product_dimensions");
         product.setDimensions(dimensions);
         
         return product;

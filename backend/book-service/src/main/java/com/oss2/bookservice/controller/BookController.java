@@ -1,7 +1,7 @@
 package com.oss2.bookservice.controller;
 
-import com.oss2.bookservice.client.FormServiceClient;
-import com.oss2.bookservice.dto.FormSubmissionDTO;
+import com.oss2.common.form.client.FormServiceClient;
+import com.oss2.common.form.dto.FormSubmissionDTO;
 import com.oss2.bookservice.model.Book;
 import com.oss2.bookservice.service.BookService;
 import com.oss2.bookservice.service.FormFieldMapper;
@@ -117,7 +117,7 @@ public class BookController {
             // If not provided, try to fetch from service (fallback)
             if (schemaJson == null || schemaJson.isEmpty()) {
                 try {
-                    com.oss2.bookservice.dto.FormSchemaDTO formSchema = formServiceClient.getForm(formId);
+                    com.oss2.common.form.dto.FormSchemaDTO formSchema = formServiceClient.getForm(formId);
                     if (formSchema != null) {
                         schemaJson = formSchema.getSchemaJson();
                         System.out.println("DEBUG: Fetched schema for form " + formId);
