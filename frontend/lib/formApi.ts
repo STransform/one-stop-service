@@ -4,6 +4,7 @@ export interface FormSchema {
     id?: number;
     title: string;
     schemaJson: string;
+    context?: string;
     createdBy?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -19,15 +20,14 @@ export interface FormSubmission {
 }
 
 // Save a form schema to backend
-export async function saveFormSchema(title: string, schemaJson: string): Promise<FormSchema> {
+export async function saveFormSchema(title: string, schemaJson: string, context?: string): Promise<FormSchema> {
     const response = await fetch(`${API_BASE_URL}/api/forms`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            // Add your auth token here when you have authentication set up
             // 'Authorization': `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ title, schemaJson }),
+        body: JSON.stringify({ title, schemaJson, context }),
     });
 
     if (!response.ok) {
@@ -37,8 +37,12 @@ export async function saveFormSchema(title: string, schemaJson: string): Promise
 }
 
 // Get all forms
-export async function getAllForms(): Promise<FormSchema[]> {
-    const response = await fetch(`${API_BASE_URL}/api/forms`, {
+export async function getAllForms(context?: string): Promise<FormSchema[]> {
+    const url = context
+        ? `${API_BASE_URL}/api/forms?context=${context}`
+        : `${API_BASE_URL}/api/forms`;
+
+    const response = await fetch(url, {
         headers: {
             // 'Authorization': `Bearer ${getToken()}`,
         },
@@ -65,14 +69,14 @@ export async function getFormById(id: number): Promise<FormSchema> {
 }
 
 // Update a form schema
-export async function updateFormSchema(id: number, title: string, schemaJson: string): Promise<FormSchema> {
+export async function updateFormSchema(id: number, title: string, schemaJson: string, context?: string): Promise<FormSchema> {
     const response = await fetch(`${API_BASE_URL}/api/forms/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             // 'Authorization': `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ title, schemaJson }),
+        body: JSON.stringify({ title, schemaJson, context }),
     });
 
     if (!response.ok) {
@@ -127,6 +131,26 @@ export async function getFormSubmissions(formSchemaId: number): Promise<FormSubm
         throw new Error('Failed to fetch submissions');
     }
     return response.json();
+}
+
+// Get form by context (singleton pattern)
+export async function getFormByContext(context: string): Promise<FormSchema | null> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/forms/by-context/${context}`, {
+            headers: {
+                // 'Authorization': `Bearer ${getToken()}`,
+            },
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) return null;
+            throw new Error('Failed to fetch form');
+        }
+        return response.json();
+    } catch (error) {
+        console.error('Error fetching form by context:', error);
+        return null;
+    }
 }
 
 // Helper function to get auth token (implement based on your auth setup)

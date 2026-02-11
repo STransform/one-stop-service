@@ -1,8 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { saveFormSchema } from '@/lib/formApi';
+import { saveFormSchema, getFormByContext } from '@/lib/formApi';
 
 const SimpleFormBuilder = dynamic(() => import('@/components/SimpleFormBuilder'), { ssr: false });
 
@@ -10,7 +10,11 @@ export default function BuilderPage() {
     const [schema, setSchema] = useState<any>(null);
     const [showJson, setShowJson] = useState(true);
     const [formTitle, setFormTitle] = useState('My Custom Form');
+    const [context, setContext] = useState('GENERAL');
     const [saving, setSaving] = useState(false);
+    const [existingFormId, setExistingFormId] = useState<number | null>(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [initialFields, setInitialFields] = useState<any>(null);
 
     const handleSchemaChange = (fields: any) => {
         const formSchema = {
@@ -40,6 +44,33 @@ export default function BuilderPage() {
         }
     };
 
+    // Auto-load existing form when context changes (singleton pattern)
+    useEffect(() => {
+        const loadExistingForm = async () => {
+            const existingForm = await getFormByContext(context);
+            if (existingForm) {
+                setExistingFormId(existingForm.id!);
+                setIsEditMode(true);
+                setFormTitle(existingForm.title);
+                try {
+                    const parsedSchema = JSON.parse(existingForm.schemaJson);
+                    setSchema(parsedSchema);
+                    setInitialFields(parsedSchema.fields || []);
+                } catch (e) {
+                    console.error('Failed to parse existing schema:', e);
+                }
+            } else {
+                setExistingFormId(null);
+                setIsEditMode(false);
+                setSchema(null);
+                setInitialFields(null);
+                setFormTitle(`${context} Form`);
+            }
+        };
+
+        loadExistingForm();
+    }, [context]);
+
     const handleSaveToBackend = async () => {
         if (!schema) {
             alert('Please create a form first!');
@@ -48,9 +79,14 @@ export default function BuilderPage() {
 
         setSaving(true);
         try {
-            const saved = await saveFormSchema(formTitle, JSON.stringify(schema));
-            alert(`Form saved successfully! ID: ${saved.id}`);
+            const saved = await saveFormSchema(formTitle, JSON.stringify(schema), context);
+            const message = isEditMode
+                ? `Form updated successfully! ID: ${saved.id}`
+                : `Form created successfully! ID: ${saved.id}`;
+            alert(message);
             console.log('Saved form:', saved);
+            setExistingFormId(saved.id!);
+            setIsEditMode(true);
         } catch (error) {
             console.error('Error saving form:', error);
             alert('Failed to save form. Make sure your backend is running!');
@@ -66,10 +102,26 @@ export default function BuilderPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex justify-between items-center">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-1">Dynamic Form Builder</h1>
-                            <p className="text-gray-600">Click components to add them to your form, then customize each field</p>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+                                {isEditMode ? `Edit ${context} Form` : 'Dynamic Form Builder'}
+                            </h1>
+                            <p className="text-gray-600">
+                                {isEditMode
+                                    ? 'Modify the existing form fields below or add new ones'
+                                    : 'Click components to add them to your form, then customize each field'}
+                            </p>
                         </div>
                         <div className="flex gap-3 items-center">
+                            <select
+                                value={context}
+                                onChange={(e) => setContext(e.target.value)}
+                                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            >
+                                <option value="GENERAL">General</option>
+                                <option value="PRODUCT">Product</option>
+                                <option value="BOOK">Book</option>
+                                <option value="ORDER">Order</option>
+                            </select>
                             <input
                                 type="text"
                                 value={formTitle}
@@ -88,7 +140,7 @@ export default function BuilderPage() {
                                 disabled={!schema || saving}
                                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {saving ? 'Saving...' : 'Save to Backend'}
+                                {saving ? 'Saving...' : (isEditMode ? 'Update Form' : 'Save to Backend')}
                             </button>
                             <button
                                 onClick={handleExportJSON}
@@ -124,7 +176,11 @@ export default function BuilderPage() {
                                 </h2>
                             </div>
                             <div className="p-6 bg-gray-50">
-                                <SimpleFormBuilder onChange={handleSchemaChange} />
+                                <SimpleFormBuilder
+                                    onChange={handleSchemaChange}
+                                    initialFields={initialFields}
+                                    key={context}
+                                />
                             </div>
                         </div>
                     </div>

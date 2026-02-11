@@ -24,7 +24,6 @@ export default function AdminBooksPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Dynamic form state
-    const [useDynamicForm, setUseDynamicForm] = useState(false);
     const [availableForms, setAvailableForms] = useState<FormSchema[]>([]);
     const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
     const [selectedFormSchema, setSelectedFormSchema] = useState<any>(null);
@@ -53,7 +52,7 @@ export default function AdminBooksPage() {
 
     const fetchAvailableForms = async () => {
         try {
-            const forms = await getAllForms();
+            const forms = await getAllForms('BOOK');
             setAvailableForms(forms);
             if (forms.length > 0 && forms[0].id) {
                 setSelectedFormId(forms[0].id);
@@ -126,13 +125,11 @@ export default function AdminBooksPage() {
     const resetForm = () => {
         setForm({ title: '', author: '', price: '', stock: '', isbn: '' });
         setEditingId(null);
-        setUseDynamicForm(false);
     };
 
     const openEdit = (book: Book) => {
         setForm(book);
         setEditingId(book.id || null);
-        setUseDynamicForm(false);
         setIsModalOpen(true);
     };
 
@@ -323,136 +320,52 @@ export default function AdminBooksPage() {
                             </button>
                         </div>
 
-                        {!editingId && (
-                            <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        checked={useDynamicForm}
-                                        onChange={(e) => setUseDynamicForm(e.target.checked)}
-                                        className="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
-                                    />
-                                    <span className="text-sm font-semibold text-gray-700 group-hover:text-indigo-700 transition-colors">
-                                        🎨 Use Dynamic Form Builder
-                                    </span>
-                                </label>
-
-                                {useDynamicForm && availableForms.length > 0 && (
-                                    <div className="mt-4">
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Select Form:</label>
+                        {/* Dynamic Form Auto-Selection */}
+                        {availableForms.length > 0 ? (
+                            <>
+                                {availableForms.length > 1 && (
+                                    <div className="mb-6">
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Select Form Template:</label>
                                         <select
                                             value={selectedFormId || ''}
                                             onChange={(e) => setSelectedFormId(Number(e.target.value))}
-                                            className="w-full border-2 border-indigo-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
                                         >
-                                            {availableForms.map(form => (
-                                                <option key={form.id} value={form.id}>{form.title}</option>
+                                            {availableForms.map(f => (
+                                                <option key={f.id} value={f.id}>{f.title}</option>
                                             ))}
                                         </select>
                                     </div>
                                 )}
 
-                                {useDynamicForm && availableForms.length === 0 && (
-                                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                        <p className="text-sm text-red-700 flex items-center">
-                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                            </svg>
-                                            No forms available. Create one in the Form Builder first.
-                                        </p>
+                                {selectedFormSchema ? (
+                                    <DynamicFormRenderer
+                                        schema={selectedFormSchema}
+                                        onSubmit={handleDynamicFormSubmit}
+                                        submitButtonText={editingId ? 'Update Book (Form)' : 'Create Book'}
+                                    />
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        Loading form schema...
                                     </div>
                                 )}
+                            </>
+                        ) : (
+                            <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                                <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                <h3 className="text-lg font-medium text-gray-900">No Book Forms Found</h3>
+                                <p className="text-gray-500 mt-2 mb-6">Please create a form with "Book" context in the Form Builder.</p>
+                                <a
+                                    href="/forms/builder"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                >
+                                    Go to Form Builder
+                                </a>
                             </div>
                         )}
-
-                        <div className="p-6">
-                            {useDynamicForm && !editingId && selectedFormSchema ? (
-                                <DynamicFormRenderer
-                                    schema={selectedFormSchema}
-                                    onSubmit={handleDynamicFormSubmit}
-                                    submitButtonText="Create Book"
-                                />
-                            ) : (
-                                <form onSubmit={handleSubmit} className="space-y-5">
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Book Title</label>
-                                        <input
-                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                            placeholder="Enter book title"
-                                            value={form.title}
-                                            onChange={e => setForm({ ...form, title: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Author</label>
-                                        <input
-                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                            placeholder="Enter author name"
-                                            value={form.author}
-                                            onChange={e => setForm({ ...form, author: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Price ($)</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="0.00"
-                                                value={form.price}
-                                                onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) })}
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Stock Quantity</label>
-                                            <input
-                                                type="number"
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="0"
-                                                value={form.stock}
-                                                onChange={e => setForm({ ...form, stock: e.target.value === '' ? '' : Number(e.target.value) })}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>ISBN</label>
-                                        <input
-                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                            placeholder="Enter ISBN"
-                                            value={form.isbn}
-                                            onChange={e => setForm({ ...form, isbn: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="flex justify-end gap-3 mt-6 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsModalOpen(false)}
-                                            className="px-6 py-2.5 border-2 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                                            style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-semibold shadow-lg transition-all transform hover:scale-105"
-                                        >
-                                            Save Book
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
-                        </div>
                     </div>
                 </div>
             )}

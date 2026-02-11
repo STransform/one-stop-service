@@ -40,7 +40,6 @@ export default function AdminProductsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Dynamic form state
-    const [useDynamicForm, setUseDynamicForm] = useState(false);
     const [availableForms, setAvailableForms] = useState<FormSchema[]>([]);
     const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
     const [selectedFormSchema, setSelectedFormSchema] = useState<any>(null);
@@ -69,7 +68,7 @@ export default function AdminProductsPage() {
 
     const fetchAvailableForms = async () => {
         try {
-            const forms = await getAllForms();
+            const forms = await getAllForms('PRODUCT');
             setAvailableForms(forms);
             if (forms.length > 0 && forms[0].id) {
                 setSelectedFormId(forms[0].id);
@@ -124,6 +123,11 @@ export default function AdminProductsPage() {
             return;
         }
 
+        if (!session?.accessToken) {
+            toast.error('Session expired or invalid. Please login again.');
+            return;
+        }
+
         const loadingToast = toast.loading('Creating product...');
         try {
             const payload = {
@@ -146,7 +150,6 @@ export default function AdminProductsPage() {
     const handleEdit = (product: any) => {
         setForm(product);
         setEditingId(product.id);
-        setUseDynamicForm(false);
         setIsModalOpen(true);
     };
 
@@ -176,7 +179,6 @@ export default function AdminProductsPage() {
             dimensions: ''
         });
         setEditingId(null);
-        setUseDynamicForm(false);
     };
 
     const totalInventory = products.reduce((sum, p) => sum + (p.stock || 0), 0);
@@ -349,22 +351,12 @@ export default function AdminProductsPage() {
                         </div>
 
                         <div className="p-6">
-                            {/* Dynamic Form Toggle */}
-                            {!editingId && (
-                                <div className="mb-6 p-4 rounded-xl border-2" style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-tertiary)' }}>
-                                    <label className="flex items-center space-x-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={useDynamicForm}
-                                            onChange={(e) => setUseDynamicForm(e.target.checked)}
-                                            className="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
-                                        />
-                                        <span className="font-semibold text-gray-700 flex items-center" style={{ color: 'var(--text-primary)' }}>
-                                            🎨 Use Dynamic Form Builder
-                                        </span>
-                                    </label>
-                                    {useDynamicForm && availableForms.length > 0 && (
-                                        <div className="mt-3">
+                            {/* Dynamic Form Auto-Selection */}
+                            {availableForms.length > 0 ? (
+                                <>
+                                    {availableForms.length > 1 && (
+                                        <div className="mb-6">
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Select Form Template:</label>
                                             <select
                                                 value={selectedFormId || ''}
                                                 onChange={(e) => setSelectedFormId(Number(e.target.value))}
@@ -377,152 +369,33 @@ export default function AdminProductsPage() {
                                             </select>
                                         </div>
                                     )}
-                                </div>
-                            )}
 
-                            {/* Form Content */}
-                            {useDynamicForm && selectedFormSchema ? (
-                                <DynamicFormRenderer
-                                    schema={selectedFormSchema}
-                                    onSubmit={handleDynamicFormSubmit}
-                                    submitButtonText="Create Product"
-                                />
+                                    {selectedFormSchema ? (
+                                        <DynamicFormRenderer
+                                            schema={selectedFormSchema}
+                                            onSubmit={handleDynamicFormSubmit}
+                                            submitButtonText={editingId ? 'Update Product (Form)' : 'Create Product'}
+                                        />
+                                    ) : (
+                                        <div className="text-center py-8 text-gray-500">
+                                            Loading form schema...
+                                        </div>
+                                    )}
+                                </>
                             ) : (
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Product Name *</label>
-                                        <input
-                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                            placeholder="Enter product name"
-                                            value={form.name}
-                                            onChange={e => setForm({ ...form, name: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Description</label>
-                                        <textarea
-                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                            placeholder="Enter product description"
-                                            rows={3}
-                                            value={form.description}
-                                            onChange={e => setForm({ ...form, description: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Category *</label>
-                                            <input
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="e.g., Electronics"
-                                                value={form.category}
-                                                onChange={e => setForm({ ...form, category: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Brand *</label>
-                                            <input
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="Enter brand name"
-                                                value={form.brand}
-                                                onChange={e => setForm({ ...form, brand: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>SKU *</label>
-                                        <input
-                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                            placeholder="Product code/SKU"
-                                            value={form.sku}
-                                            onChange={e => setForm({ ...form, sku: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Price ($) *</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="0.00"
-                                                value={form.price}
-                                                onChange={e => setForm({ ...form, price: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Stock *</label>
-                                            <input
-                                                type="number"
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="0"
-                                                value={form.stock}
-                                                onChange={e => setForm({ ...form, stock: e.target.value })}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Image URL</label>
-                                        <input
-                                            className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                            placeholder="https://..."
-                                            value={form.imageUrl}
-                                            onChange={e => setForm({ ...form, imageUrl: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Weight (kg)</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="0.00"
-                                                value={form.weight}
-                                                onChange={e => setForm({ ...form, weight: e.target.value })}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Dimensions (L x W x H)</label>
-                                            <input
-                                                className="w-full border-2 p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
-                                                placeholder="10 x 5 x 3 cm"
-                                                value={form.dimensions}
-                                                onChange={e => setForm({ ...form, dimensions: e.target.value })}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex space-x-3 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                                        <button
-                                            type="submit"
-                                            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-                                        >
-                                            {editingId ? 'Update Product' : 'Create Product'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsModalOpen(false)}
-                                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </form>
+                                <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                                    <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    <h3 className="text-lg font-medium text-gray-900">No Product Forms Found</h3>
+                                    <p className="text-gray-500 mt-2 mb-6">Please create a form with "Product" context in the Form Builder.</p>
+                                    <a
+                                        href="/forms/builder"
+                                        className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    >
+                                        Go to Form Builder
+                                    </a>
+                                </div>
                             )}
                         </div>
                     </div>

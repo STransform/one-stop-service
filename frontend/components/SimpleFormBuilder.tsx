@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface FormField {
     id: string;
@@ -13,13 +13,22 @@ interface FormField {
 interface SimpleFormBuilderProps {
     onChange?: (fields: FormField[]) => void;
     fieldKeyInfo?: string;
+    initialFields?: FormField[];
 }
 
-const SimpleFormBuilder: React.FC<SimpleFormBuilderProps> = ({ onChange, fieldKeyInfo }) => {
+const SimpleFormBuilder: React.FC<SimpleFormBuilderProps> = ({ onChange, fieldKeyInfo, initialFields }) => {
     const [fields, setFields] = useState<FormField[]>([]);
     const [editingField, setEditingField] = useState<FormField | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
+
+    // Load initial fields when provided (for editing existing forms)
+    useEffect(() => {
+        if (initialFields && initialFields.length > 0) {
+            setFields(initialFields);
+            if (onChange) onChange(initialFields);
+        }
+    }, [initialFields]);
 
     const addField = (type: FormField['type']) => {
         const newField: FormField = {
