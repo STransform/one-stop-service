@@ -1,0 +1,14 @@
+{
+    "Index": {
+        "title": "Oromia Integrated OSS Platform"
+    },
+    "Tracking": {
+        "title": "Track Application",
+        "description": "Monitor the status of your service requests in real-time.",
+        "inputLabel": "Application Tracking ID",
+        "inputPlaceholder": "e.g. APP-12345678",
+        "buttonLabel": "Track Status",
+        "searching": "Searching...",
+        "notFound": "Application not found. Please check your tracking ID and try again."
+    }
+}
