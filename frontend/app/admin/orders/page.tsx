@@ -23,6 +23,10 @@ export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
     useEffect(() => {
         if (session) {
             fetchOrders();
@@ -129,28 +133,34 @@ export default function AdminOrdersPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y" style={{ borderColor: 'var(--border-color)' }}>
-                            {orders.map((order) => (
-                                <tr key={order.id} className="hover:bg-indigo-50 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <span className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>#{order.id}</span>
-                                    </td>
-                                    <td className="px-6 py-4" style={{ color: 'var(--text-secondary)' }}>
-                                        {new Date(order.orderDate).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="font-medium" style={{ color: 'var(--text-primary)' }}>{order.bookTitle || `Book ID: ${order.bookId}`}</div>
-                                        <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>{order.bookAuthor}</div>
-                                    </td>
-                                    <td className="px-6 py-4 font-bold text-green-600">
-                                        ${order.bookPrice?.toFixed(2) || '0.00'}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
-                                            {order.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
+                            {(() => {
+                                const totalPages = Math.ceil(orders.length / itemsPerPage);
+                                const startIndex = (currentPage - 1) * itemsPerPage;
+                                const endIndex = startIndex + itemsPerPage;
+                                const currentOrders = orders.slice(startIndex, endIndex);
+                                return currentOrders.map((order) => (
+                                    <tr key={order.id} className="hover:bg-indigo-50 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <span className="font-mono text-sm" style={{ color: 'var(--text-primary)' }}>#{order.id}</span>
+                                        </td>
+                                        <td className="px-6 py-4" style={{ color: 'var(--text-secondary)' }}>
+                                            {new Date(order.orderDate).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium" style={{ color: 'var(--text-primary)' }}>{order.bookTitle || `Book ID: ${order.bookId}`}</div>
+                                            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>{order.bookAuthor}</div>
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-green-600">
+                                            ${order.bookPrice?.toFixed(2) || '0.00'}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ));
+                            })()}
                             {orders.length === 0 && !loading && (
                                 <tr>
                                     <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
@@ -161,6 +171,57 @@ export default function AdminOrdersPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination Controls */}
+                {orders.length > itemsPerPage && (() => {
+                    const totalPages = Math.ceil(orders.length / itemsPerPage);
+                    return (
+                        <div className="px-6 py-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
+                            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                Showing <span className="font-semibold">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
+                                <span className="font-semibold">{Math.min(currentPage * itemsPerPage, orders.length)}</span> of{' '}
+                                <span className="font-semibold">{orders.length}</span> orders
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                    style={{ borderColor: 'var(--border-color)' }}
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <div className="flex gap-1">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${currentPage === page
+                                                    ? 'bg-red-600 text-white'
+                                                    : 'border hover:bg-gray-50'
+                                                }`}
+                                            style={currentPage !== page ? { borderColor: 'var(--border-color)' } : {}}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-4 py-2 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                    style={{ borderColor: 'var(--border-color)' }}
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })()}
             </div>
         </div>
     );

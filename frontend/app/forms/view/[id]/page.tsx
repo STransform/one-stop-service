@@ -105,7 +105,7 @@ export default function ViewFormPage() {
             {/* Form Content */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+                    <div className="bg-gradient-to-r from-red-600 to-black px-8 py-6">
                         <h2 className="text-2xl font-semibold text-white">Fill Out This Form</h2>
                         <p className="text-blue-100 mt-1">Please complete all required fields marked with *</p>
                     </div>
