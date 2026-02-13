@@ -51,41 +51,22 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
         onSubmit(formData);
     };
 
-    const getFieldIcon = (type: string) => {
-        const icons: Record<string, string> = {
-            'text': '📝',
-            'email': '📧',
-            'number': '🔢',
-            'tel': '📞',
-            'url': '🔗',
-            'date': '📅',
-            'time': '⏰',
-            'datetime-local': '📆',
-            'textarea': '📄',
-            'select': '📋',
-            'checkbox': '☑️',
-            'radio': '🔘',
-            'file': '📎',
-            'color': '🎨',
-        };
-        return icons[type] || '📝';
-    };
+
 
     const renderField = (field: FormField) => {
-        const baseInputClass = "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white";
-        const iconClass = "absolute left-3 top-1/2 transform -translate-y-1/2 text-xl pointer-events-none";
+        const baseLabelClass = "block text-sm font-medium text-gray-700 mb-1";
+        const baseInputClass = "block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 sm:text-sm py-2 px-3";
 
         switch (field.type) {
             case 'textarea':
                 return (
-                    <div className="relative">
-                        <span className="absolute left-3 top-3 text-xl pointer-events-none">{getFieldIcon(field.type)}</span>
+                    <div>
                         <textarea
                             value={formData[field.id] || ''}
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             placeholder={field.placeholder}
                             required={field.required}
-                            className={`${baseInputClass} pl-12 min-h-[120px] resize-y`}
+                            className={baseInputClass}
                             rows={4}
                         />
                     </div>
@@ -93,36 +74,32 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
 
             case 'select':
                 return (
-                    <div className="relative">
-                        <span className={iconClass}>{getFieldIcon(field.type)}</span>
+                    <div>
                         <select
                             value={formData[field.id] || ''}
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             required={field.required}
-                            className={`${baseInputClass} pl-12 appearance-none cursor-pointer`}
+                            className={baseInputClass}
                         >
                             <option value="">{field.placeholder || 'Select an option'}</option>
                             {field.options?.map((opt, i) => (
                                 <option key={i} value={opt}>{opt}</option>
                             ))}
                         </select>
-                        <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
                     </div>
                 );
 
             case 'checkbox':
                 return (
-                    <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                    <div className="flex items-center">
                         <input
                             type="checkbox"
                             checked={formData[field.id] || false}
                             onChange={(e) => handleChange(field.id, e.target.checked)}
-                            className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-600"
                             id={`checkbox-${field.id}`}
                         />
-                        <label htmlFor={`checkbox-${field.id}`} className="text-sm text-gray-700 cursor-pointer flex-1">
+                        <label htmlFor={`checkbox-${field.id}`} className="ml-2 block text-sm text-gray-900">
                             {field.placeholder || field.label}
                         </label>
                     </div>
@@ -130,9 +107,9 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
 
             case 'radio':
                 return (
-                    <div className="space-y-2">
+                    <div className="space-y-4 sm:flex sm:items-center sm:space-x-10 sm:space-y-0">
                         {field.options?.map((opt, i) => (
-                            <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                            <div key={i} className="flex items-center">
                                 <input
                                     type="radio"
                                     name={field.id}
@@ -140,10 +117,10 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
                                     checked={formData[field.id] === opt}
                                     onChange={(e) => handleChange(field.id, e.target.value)}
                                     required={field.required}
-                                    className="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-600"
                                     id={`radio-${field.id}-${i}`}
                                 />
-                                <label htmlFor={`radio-${field.id}-${i}`} className="text-sm text-gray-700 cursor-pointer flex-1">
+                                <label htmlFor={`radio-${field.id}-${i}`} className="ml-3 block text-sm font-medium text-gray-700">
                                     {opt}
                                 </label>
                             </div>
@@ -153,12 +130,12 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
 
             case 'file':
                 return (
-                    <div className="relative">
+                    <div>
                         <input
                             type="file"
                             onChange={(e) => handleChange(field.id, e.target.files?.[0])}
                             required={field.required}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                         />
                     </div>
                 );
@@ -171,29 +148,28 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
                             value={formData[field.id] || '#000000'}
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             required={field.required}
-                            className="h-12 w-20 rounded-lg border border-gray-300 cursor-pointer"
+                            className="h-9 w-9 rounded-md border border-gray-300 cursor-pointer p-1"
                         />
                         <input
                             type="text"
                             value={formData[field.id] || ''}
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             placeholder="#000000"
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white font-mono"
+                            className={baseInputClass}
                         />
                     </div>
                 );
 
             default:
                 return (
-                    <div className="relative">
-                        <span className={iconClass}>{getFieldIcon(field.type)}</span>
+                    <div>
                         <input
                             type={field.type}
                             value={formData[field.id] || ''}
                             onChange={(e) => handleChange(field.id, e.target.value)}
                             placeholder={field.placeholder}
                             required={field.required}
-                            className={`${baseInputClass} pl-12`}
+                            className={baseInputClass}
                         />
                     </div>
                 );
@@ -203,40 +179,28 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {fields.map((field, index) => (
-                <div key={field.id} className="group">
-                    <label className="block mb-2">
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm font-semibold text-gray-700">
-                                {field.label}
-                            </span>
-                            {field.required && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
-                                    Required
-                                </span>
-                            )}
-                        </div>
-                    </label>
-                    <div className="relative">
-                        {renderField(field)}
-                    </div>
+                <div key={field.id}>
+                    {field.type !== 'checkbox' && (
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                        </label>
+                    )}
+                    {renderField(field)}
                     {field.placeholder && field.type !== 'checkbox' && field.type !== 'radio' && (
-                        <p className="mt-1.5 text-xs text-gray-500 ml-1">
-                            {field.type === 'select' ? '' : `Hint: ${field.placeholder}`}
-                        </p>
+                        <p className="mt-1 text-xs text-gray-500">{field.placeholder}</p>
                     )}
                 </div>
             ))}
 
-            <div className="pt-4 border-t border-gray-200">
-                <button
-                    type="submit"
-                    className="w-full px-6 py-4 bg-gradient-to-r from-red-600 to-black text-white rounded-lg hover:from-red-700 hover:to-gray-900 transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {submitButtonText}
-                </button>
+            <div className="pt-5">
+                <div className="flex justify-end">
+                    <button
+                        type="submit"
+                        className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-gray-900 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-black focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+                    >
+                        {submitButtonText}
+                    </button>
+                </div>
             </div>
         </form>
     );

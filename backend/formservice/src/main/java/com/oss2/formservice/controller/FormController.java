@@ -1,4 +1,5 @@
 package com.oss2.formservice.controller;
+
 import com.oss2.formservice.model.FormSchema;
 import com.oss2.formservice.repository.FormSchemaRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,15 +14,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000")
 public class FormController {
-    
+
     private final FormSchemaRepository formSchemaRepository;
-    
-    // Create or update form schema (UPSERT logic for singleton pattern)
+
+    // Create or update form schema (logic for singleton pattern)
     @PostMapping
     public ResponseEntity<FormSchema> createOrUpdateForm(@RequestBody FormSchema formSchema) {
         // Check if form with this context already exists
         Optional<FormSchema> existing = formSchemaRepository.findByContextAndActiveTrue(formSchema.getContext());
-        
+
         if (existing.isPresent()) {
             // Update existing form (singleton pattern)
             FormSchema existingForm = existing.get();
@@ -36,7 +37,7 @@ public class FormController {
             return ResponseEntity.ok(saved);
         }
     }
-    
+
     // Get all active forms, optionally filtered by context
     @GetMapping
     public ResponseEntity<List<FormSchema>> getAllForms(@RequestParam(required = false) String context) {
@@ -47,7 +48,7 @@ public class FormController {
         }
         return ResponseEntity.ok(formSchemaRepository.findByActiveTrue());
     }
-    
+
     // Get form by context (singleton pattern - returns single form)
     @GetMapping("/by-context/{context}")
     public ResponseEntity<FormSchema> getFormByContext(@PathVariable String context) {
@@ -55,7 +56,7 @@ public class FormController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     // Get a specific form by ID
     @GetMapping("/{id}")
     public ResponseEntity<FormSchema> getFormById(@PathVariable Long id) {
@@ -63,7 +64,7 @@ public class FormController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     // Update a form schema
     @PutMapping("/{id}")
     public ResponseEntity<FormSchema> updateForm(
@@ -78,7 +79,7 @@ public class FormController {
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
-    
+
     // Delete (soft delete) a form
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteForm(@PathVariable Long id) {

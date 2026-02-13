@@ -2,45 +2,45 @@
 
 :root {
   /* Primary Colors */
-  --admin-primary: #4f46e5;
-  --admin-primary-dark: #4338ca;
-  --admin-primary-light: #6366f1;
-  
+  --admin-primary: #dc2626;
+  --admin-primary-dark: #b91c1c;
+  --admin-primary-light: #ef4444;
+
   /* Sidebar Colors */
   --sidebar-bg: #1e293b;
   --sidebar-text: #94a3b8;
   --sidebar-text-hover: #ffffff;
   --sidebar-active-bg: #334155;
   --sidebar-border: #334155;
-  
+
   /* Header Colors */
   --header-bg: #ffffff;
   --header-text: #1e293b;
   --header-border: #e2e8f0;
-  
+
   /* Background Colors */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-tertiary: #f1f5f9;
-  
+
   /* Text Colors */
   --text-primary: #1e293b;
   --text-secondary: #64748b;
   --text-tertiary: #94a3b8;
-  
+
   /* Border Colors */
   --border-color: #e2e8f0;
   --border-color-dark: #cbd5e1;
-  
+
   /* Shadow */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  
+
   /* Transitions */
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 300ms ease-in-out;
-  
+
   /* Dimensions */
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 80px;
@@ -52,15 +52,15 @@
   --header-bg: #0f172a;
   --header-text: #f1f5f9;
   --header-border: #334155;
-  
+
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
-  
+
   --text-primary: #f1f5f9;
   --text-secondary: #cbd5e1;
   --text-tertiary: #94a3b8;
-  
+
   --border-color: #334155;
   --border-color-dark: #475569;
 }
@@ -261,7 +261,7 @@
 }
 
 .sidebar-submenu-link.active {
-  background-color: rgba(79, 70, 229, 0.2);
+  background-color: rgba(220, 38, 38, 0.2);
   color: var(--admin-primary-light);
   font-weight: 600;
 }
@@ -287,7 +287,7 @@
   z-index: 30;
 }
 
-.admin-sidebar.collapsed ~ .admin-header {
+.admin-sidebar.collapsed~.admin-header {
   left: var(--sidebar-collapsed-width);
 }
 
@@ -453,7 +453,7 @@
   width: calc(100% - var(--sidebar-width));
 }
 
-.admin-sidebar.collapsed ~ .admin-main {
+.admin-sidebar.collapsed~.admin-main {
   margin-left: var(--sidebar-collapsed-width);
   width: calc(100% - var(--sidebar-collapsed-width));
 }
@@ -463,20 +463,20 @@
   .admin-sidebar {
     transform: translateX(-100%);
   }
-  
+
   .admin-sidebar.mobile-open {
     transform: translateX(0);
   }
-  
+
   .admin-header {
     left: 0;
   }
-  
+
   .admin-main {
     margin-left: 0;
     width: 100%;
   }
-  
+
   .user-info {
     display: none;
   }
@@ -487,6 +487,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -497,6 +498,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

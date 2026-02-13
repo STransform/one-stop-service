@@ -3,9 +3,7 @@ package com.oss2.common.form.client;
 import com.oss2.common.form.dto.FormSchemaDTO;
 import com.oss2.common.form.dto.FormSubmissionDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,26 +11,20 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class FormServiceClient {
-    
-    private final RestTemplate restTemplate;
+    // To hide FeignClient implementation details from consumers
+    private final FormServiceFeignClient formServiceFeignClient;
 
-    @Value("${form.service.url:http://form-service}")
-    private String formServiceUrl;
-    
     /**
      * Get a form schema by ID
      */
     public FormSchemaDTO getForm(Long formId) {
         try {
-            return restTemplate.getForObject(
-                formServiceUrl + "/api/forms/" + formId,
-                FormSchemaDTO.class
-            );
+            return formServiceFeignClient.getForm(formId);
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch form from form-service: " + e.getMessage());
         }
     }
-    
+
     /**
      * Submit form data
      */
@@ -41,26 +33,41 @@ public class FormServiceClient {
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("formSchemaId", formSchemaId);
             requestBody.put("submissionData", data);
-            
-            return restTemplate.postForObject(
-                formServiceUrl + "/api/submissions",
-                requestBody,
-                FormSubmissionDTO.class
-            );
+
+            return formServiceFeignClient.submitFormData(requestBody);
         } catch (Exception e) {
             throw new RuntimeException("Failed to submit form data: " + e.getMessage());
         }
     }
-    
+
+    /**
+     * Create or update a form schema
+     */
+    public FormSchemaDTO createOrUpdateForm(FormSchemaDTO formSchema) {
+        try {
+            return formServiceFeignClient.createOrUpdateForm(formSchema);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create/update form: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Update an existing form schema
+     */
+    public FormSchemaDTO updateForm(Long id, FormSchemaDTO formSchema) {
+        try {
+            return formServiceFeignClient.updateForm(id, formSchema);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update form: " + e.getMessage());
+        }
+    }
+
     /**
      * Get submissions for a specific form
      */
     public FormSubmissionDTO[] getFormSubmissions(Long formSchemaId) {
         try {
-            return restTemplate.getForObject(
-                formServiceUrl + "/api/submissions/form/" + formSchemaId,
-                FormSubmissionDTO[].class
-            );
+            return formServiceFeignClient.getFormSubmissions(formSchemaId);
         } catch (Exception e) {
             throw new RuntimeException("Failed to fetch form submissions: " + e.getMessage());
         }

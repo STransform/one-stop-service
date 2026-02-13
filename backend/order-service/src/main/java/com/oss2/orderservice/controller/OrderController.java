@@ -1,7 +1,7 @@
 package com.oss2.orderservice.controller;
 
-import com.oss2.orderservice.client.FormServiceClient;
-import com.oss2.orderservice.dto.FormSubmissionDTO;
+import com.oss2.common.form.client.FormServiceClient;
+import com.oss2.common.form.dto.FormSubmissionDTO;
 import com.oss2.orderservice.model.Order;
 import com.oss2.orderservice.service.OrderService;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +45,8 @@ public class OrderController {
     /**
      * Submit feedback for an order using a dynamic form
      * Example: POST /orders/123/feedback?formId=5
-     * Body: {"Delivery Speed": "5", "Product Quality": "5", "Comments": "Great service!"}
+     * Body: {"Delivery Speed": "5", "Product Quality": "5", "Comments": "Great
+     * service!"}
      */
     @PostMapping("/{orderId}/feedback")
     public ResponseEntity<FormSubmissionDTO> submitOrderFeedback(
@@ -53,32 +54,32 @@ public class OrderController {
             @RequestParam Long formId,
             @RequestBody Map<String, Object> feedbackData,
             @AuthenticationPrincipal Jwt jwt) {
-        
+
         String userId = jwt.getSubject();
         Order order = orderService.getOrderById(orderId);
-        
+
         if (order == null) {
             return ResponseEntity.notFound().build();
         }
-        
+
         // Verify user owns this order
         if (!order.getUserId().equals(userId)) {
             return ResponseEntity.status(403).build();
         }
-        
+
         // Add order context to the feedback data
         Map<String, Object> enrichedData = new HashMap<>(feedbackData);
         enrichedData.put("orderId", orderId);
         enrichedData.put("userId", userId);
         enrichedData.put("bookTitle", order.getBookTitle());
         enrichedData.put("orderDate", order.getOrderDate().toString());
-        
+
         // Submit to form service
         FormSubmissionDTO submission = formServiceClient.submitFormData(formId, enrichedData);
-        
+
         return ResponseEntity.ok(submission);
     }
-    
+
     /**
      * Get all feedback for an order
      * Example: GET /orders/123/feedback?formId=5
@@ -88,19 +89,19 @@ public class OrderController {
             @PathVariable Long orderId,
             @RequestParam Long formId,
             @AuthenticationPrincipal Jwt jwt) {
-        
+
         String userId = jwt.getSubject();
         Order order = orderService.getOrderById(orderId);
-        
+
         if (order == null) {
             return ResponseEntity.notFound().build();
         }
-        
+
         // Verify user owns this order
         if (!order.getUserId().equals(userId)) {
             return ResponseEntity.status(403).build();
         }
-        
+
         FormSubmissionDTO[] submissions = formServiceClient.getFormSubmissions(formId);
         return ResponseEntity.ok(submissions);
     }
