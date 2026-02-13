@@ -15,11 +15,11 @@ import java.util.Map;
 @Component
 public class FormFieldMapper {
 
-
-    
     /**
      * Maps form submission data to a Book entity
      * Supports multiple field name variations for flexibility
+     * Simple overload that calls the main method without a schema.
+     * When used: When don't have the form schema JSON available.
      */
     public Book mapToBook(Map<String, Object> formData) {
         return mapToBook(formData, null);
@@ -31,28 +31,32 @@ public class FormFieldMapper {
     public Book mapToBook(Map<String, Object> formData, String schemaJson) {
         // Log received keys for debugging
         System.out.println("DEBUG: FormFieldMapper received keys: " + formData.keySet());
-        
+
         // Build label-to-ID mapping from schema if provided
         Map<String, String> labelToIdMap = FormMappingUtils.buildLabelToIdMap(schemaJson);
-        
+
         Book book = new Book();
-        
+
         // Map with flexible field names and schema support
-        String title = FormMappingUtils.getFieldValue(formData, labelToIdMap, "title", "Title", "Book Title", "Name", "Book Name");
+        String title = FormMappingUtils.getFieldValue(formData, labelToIdMap, "title", "Title", "Book Title", "Name",
+                "Book Name");
         book.setTitle(title != null && !title.isEmpty() ? title : "Draft Book (from Form)");
-        
-        String author = FormMappingUtils.getFieldValue(formData, labelToIdMap, "author", "Author", "Author Name", "Writer");
+
+        String author = FormMappingUtils.getFieldValue(formData, labelToIdMap, "author", "Author", "Author Name",
+                "Writer");
         book.setAuthor(author != null && !author.isEmpty() ? author : "Unknown Author");
-        
-        String isbn = FormMappingUtils.getFieldValue(formData, labelToIdMap, "isbn", "ISBN", "ISBN Number", "ISBN Code");
+
+        String isbn = FormMappingUtils.getFieldValue(formData, labelToIdMap, "isbn", "ISBN", "ISBN Number",
+                "ISBN Code");
         book.setIsbn(isbn != null && !isbn.isEmpty() ? isbn : "N/A");
-        
+
         Double price = FormMappingUtils.getDoubleValue(formData, labelToIdMap, "price", "Price", "Cost", "Amount");
         book.setPrice(price != null ? price : 0.0);
-        
-        Integer stock = FormMappingUtils.getIntegerValue(formData, labelToIdMap, "stock", "Stock", "Quantity", "Available", "Inventory");
+
+        Integer stock = FormMappingUtils.getIntegerValue(formData, labelToIdMap, "stock", "Stock", "Quantity",
+                "Available", "Inventory");
         book.setStock(stock != null ? stock : 0);
-        
+
         return book;
     }
 
@@ -62,12 +66,16 @@ public class FormFieldMapper {
      */
     public java.util.List<String> getValidationErrors(Book book) {
         java.util.List<String> missing = new java.util.ArrayList<>();
-        
-        if (book.getTitle() == null || book.getTitle().isEmpty()) missing.add("title");
-        if (book.getAuthor() == null || book.getAuthor().isEmpty()) missing.add("author");
-        if (book.getPrice() == null || book.getPrice() <= 0) missing.add("price");
-        if (book.getStock() == null || book.getStock() < 0) missing.add("stock");
-        
+
+        if (book.getTitle() == null || book.getTitle().isEmpty())
+            missing.add("title");
+        if (book.getAuthor() == null || book.getAuthor().isEmpty())
+            missing.add("author");
+        if (book.getPrice() == null || book.getPrice() <= 0)
+            missing.add("price");
+        if (book.getStock() == null || book.getStock() < 0)
+            missing.add("stock");
+
         return missing;
     }
 
