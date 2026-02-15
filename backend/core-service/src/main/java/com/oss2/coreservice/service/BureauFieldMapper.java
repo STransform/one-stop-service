@@ -43,6 +43,14 @@ public class BureauFieldMapper {
                 "description", "Description", "Details", "About");
         bureau.setDescription(description);
 
+        // 4. Map ID (if present)
+        if (formData.containsKey("id")) {
+            Object idObj = formData.get("id");
+            if (idObj != null) {
+                bureau.setId(idObj.toString());
+            }
+        }
+
         return bureau;
     }
 

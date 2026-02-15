@@ -71,11 +71,22 @@ public class BureauRegistryController {
             }
 
             BureauRegistryDTO dto = new BureauRegistryDTO();
+            dto.setId(bureau.getId()); // Set ID from mapped entity
             dto.setCode(bureau.getCode());
             dto.setName(bureau.getName());
             dto.setDescription(bureau.getDescription());
 
-            BureauRegistryDTO saved = bureauRegistryService.createBureau(dto);
+            BureauRegistryDTO saved;
+            if (dto.getId() != null && !dto.getId().isEmpty()) {
+                // Update existing bureau
+                saved = bureauRegistryService.updateBureau(dto.getId(), dto);
+                if (saved == null) {
+                    return ResponseEntity.notFound().build();
+                }
+            } else {
+                // Create new bureau
+                saved = bureauRegistryService.createBureau(dto);
+            }
             return ResponseEntity.ok(saved);
 
         } catch (Exception e) {

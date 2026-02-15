@@ -45,11 +45,26 @@ function SectorForm() {
                 // 2. Fetch Existing Data if Editing
                 if (editId) {
                     const bureau = await getBureauById(editId);
-                    setInitialData({
-                        code: bureau.code,
-                        name: bureau.name,
-                        description: bureau.description || ''
-                    });
+
+                    // Map bureau data to form field IDs
+                    const mappedData: any = {};
+
+                    if (parsedSchema.fields) {
+                        parsedSchema.fields.forEach((field: any) => {
+                            const label = field.label?.toLowerCase();
+
+                            // Map based on label matching
+                            if (label?.includes('code') || label?.includes('abbreviation')) {
+                                mappedData[field.id] = bureau.code;
+                            } else if (label?.includes('name') && !label?.includes('code')) {
+                                mappedData[field.id] = bureau.name;
+                            } else if (label?.includes('description') || label?.includes('details')) {
+                                mappedData[field.id] = bureau.description || '';
+                            }
+                        });
+                    }
+
+                    setInitialData(mappedData);
                 }
             } catch (err: any) {
                 console.error("Error loading form resources:", err);
@@ -65,7 +80,9 @@ function SectorForm() {
     const handleSubmit = async (formData: any) => {
         try {
             if (editId) {
-                await updateBureau(editId as string, formData);
+                // For updates, add the ID to formData and use the same form-based endpoint
+                const updateData = { ...formData, id: editId };
+                await createBureauFromForm(updateData, undefined, formSchema);
                 alert('Bureau updated successfully');
             } else {
                 // Use backend-driven form submission with field mapping

@@ -84,7 +84,7 @@ export default function SectorsListPage() {
                                         <div className="font-medium text-slate-900">
                                             {sector.name}
                                         </div>
-                                        <div className="text-xs text-slate-400">{sector.id}</div>
+                                        {/* <div className="text-xs text-slate-400">{sector.id}</div> */}
                                     </td>
                                     <td className="px-6 py-4 text-sm text-slate-600">
                                         <span className="bg-slate-100 px-2 py-1 rounded text-xs font-mono">{sector.code}</span>
