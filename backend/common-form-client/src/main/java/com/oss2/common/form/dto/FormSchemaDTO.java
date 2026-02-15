@@ -11,4 +11,5 @@ public class FormSchemaDTO {
     private String createdAt;
     private String updatedAt;
     private Boolean active;
+    private String context;
 }

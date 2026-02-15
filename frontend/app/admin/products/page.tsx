@@ -270,9 +270,9 @@ export default function AdminProductsPage() {
                                             <tr key={product.id}>
                                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                                     <div className="flex items-center">
-                                                        <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold">
+                                                        {/* <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold">
                                                             {product.name.charAt(0)}
-                                                        </div>
+                                                        </div> */}
                                                         <div className="ml-4">
                                                             <div className="font-medium text-gray-900">{product.name}</div>
                                                             <div className="text-gray-500">{product.sku}</div>

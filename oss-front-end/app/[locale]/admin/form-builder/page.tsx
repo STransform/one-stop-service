@@ -48,6 +48,7 @@ export default function FormBuilderListPage() {
             case 'BOOK': return <Book size={16} className="text-purple-500" />;
             case 'ORDER': return <ShoppingCart size={16} className="text-amber-500" />;
             case 'INVENTORY': return <Archive size={16} className="text-slate-500" />;
+            case 'BUREAU_REGISTRY': return <Globe size={16} className="text-cyan-500" />;
             default: return <FileText size={16} className="text-slate-400" />;
         }
     };

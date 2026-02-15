@@ -12,13 +12,44 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks: {
         async jwt({ token, account }) {
+            // Initial sign in
             if (account) {
                 token.accessToken = account.access_token as string;
                 token.idToken = account.id_token as string;
+            }
 
-                // Extract roles
-                const decoded = parseJwt(account.access_token as string);
-                token.roles = decoded?.realm_access?.roles || [];
+            // Extract roles on every call to ensure they are up to date
+            const accessToken = (account?.access_token as string) || (token.accessToken as string);
+
+            if (accessToken) {
+                try {
+                    const decoded = parseJwt(accessToken);
+                    const clientId = process.env.KEYCLOAK_CLIENT_ID;
+                    const roles: string[] = [];
+
+                    // to Debug logs
+                    console.log("Debug: Processing JWT");
+                    // Only log if we have decoded data to avoid spamming
+                    if (decoded) {
+                        // console.log("Debug: Decoded JWT:", JSON.stringify(decoded, null, 2)); 
+                    }
+                    console.log("Debug: Client ID:", clientId);
+
+                    if (decoded?.realm_access?.roles) {
+                        roles.push(...decoded.realm_access.roles);
+                    }
+
+                    if (clientId && decoded?.resource_access?.[clientId]?.roles) {
+                        roles.push(...decoded.resource_access[clientId].roles);
+                    }
+
+                    const finalRoles = Array.from(new Set(roles));
+                    token.roles = finalRoles;
+                    console.log("Debug: Final Roles:", finalRoles);
+                } catch (error) {
+                    console.error("Error parsing JWT or extracting roles:", error);
+                    token.roles = [];
+                }
             }
             return token;
         },

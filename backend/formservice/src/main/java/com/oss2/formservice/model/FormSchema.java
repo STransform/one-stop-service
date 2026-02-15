@@ -16,7 +16,7 @@ public class FormSchema {
     private String schemaJson;  // Store the JSON schema
 
     @Column(unique = true)
-    private String context; // E.g., "PRODUCT", "BOOK", "ORDER" - Only one form per context allowed
+    private String context; // E.g.,"GENERAL", "PRODUCT", "BOOK", "ORDER" - Only one form per context allowed
     
     private String createdBy;
     
