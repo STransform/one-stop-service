@@ -186,6 +186,7 @@ export function FormBuilder({ initialData, formId, onSave }: FormBuilderProps) {
                             <option value="BOOK">Book</option>
                             <option value="ORDER">Order</option>
                             <option value="INVENTORY">Inventory</option>
+                            <option value="BUREAU_REGISTRY">Bureau Registry</option>
                         </select>
                     </div>
                     <div className="md:col-span-2">

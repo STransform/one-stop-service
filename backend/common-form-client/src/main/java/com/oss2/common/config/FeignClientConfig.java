@@ -9,7 +9,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 
 @Configuration
 public class FeignClientConfig {
-
+    // Every time any Feign client makes a request → this interceptor runs
+    // It looks at the current Spring Security context
+    // If there's a JwtAuthenticationToken → it takes the raw JWT string and adds it
     @Bean
     public RequestInterceptor requestInterceptor() {
         return requestTemplate -> {

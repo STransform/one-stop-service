@@ -153,12 +153,7 @@ export async function getFormByContext(context: string): Promise<FormSchema | nu
     }
 }
 
-// Helper function to get auth token (implement based on your auth setup)
+// Helper function to get auth token
 function getToken(): string {
-    // Get token from localStorage, cookies, or your auth provider
-    // For example, if using NextAuth:
-    // return session?.accessToken || '';
-
-    // For now, return empty string (you'll implement this when you add auth)
     return typeof window !== 'undefined' ? localStorage.getItem('token') || '' : '';
 }

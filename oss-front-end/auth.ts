@@ -68,14 +68,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const clientId = process.env.KEYCLOAK_CLIENT_ID;
           let roles: string[] = [];
 
-          // Try to get roles from resource_access first (client-specific roles)
+          // Get realm roles
+          if (payload.realm_access?.roles) {
+            roles.push(...payload.realm_access.roles);
+          }
+
+          // Get client roles
           if (clientId && payload.resource_access?.[clientId]?.roles) {
-            roles = payload.resource_access[clientId].roles;
+            roles.push(...payload.resource_access[clientId].roles);
           }
-          // Fall back to realm_access roles
-          else if (payload.realm_access?.roles) {
-            roles = payload.realm_access.roles;
-          }
+
+          // Deduplicate
+          roles = Array.from(new Set(roles));
 
           token.roles = roles;
         } catch (error) {

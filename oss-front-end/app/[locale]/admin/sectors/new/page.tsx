@@ -1,49 +1,119 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "@/i18n/routing";
-import { useForm } from "react-hook-form";
-import { ArrowLeft, Save, Building2 } from "lucide-react";
+import { ArrowLeft, Building2 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getSectorById } from "@/lib/mock-db";
+import { getFormByContext } from "@/lib/formApi";
+import { createBureau, updateBureau, getBureauById, createBureauFromForm } from '@/lib/coreApi';
+import DynamicFormRenderer from '@/components/forms/ui/DynamicFormRenderer';
 
 function SectorForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const editId = searchParams.get("edit");
-    const existingSector = editId ? getSectorById(editId) : null;
 
-    const { register, handleSubmit, reset } = useForm({
-        defaultValues: existingSector ? {
-            name_en: existingSector.name.en,
-            name_om: existingSector.name.om,
-            name_am: existingSector.name.am,
-            code: existingSector.code,
-            description_en: existingSector.description?.en
-        } : {}
-    });
+    const [formSchema, setFormSchema] = useState<any>(null);
+    const [initialData, setInitialData] = useState<any>({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const onSubmit = (data: any) => {
-        const payload = {
-            id: editId || `sector_${Date.now()}`,
-            code: data.code,
-            name: {
-                en: data.name_en,
-                om: data.name_om,
-                am: data.name_am
-            },
-            description: {
-                en: data.description_en
+    useEffect(() => {
+        const loadResources = async () => {
+            setLoading(true);
+            try {
+                // 1. Fetch Form Definition using BUREAU_REGISTRY context
+                const schema = await getFormByContext('BUREAU_REGISTRY');
+                if (!schema) {
+                    setError("Form definition 'BUREAU_REGISTRY' not found. Please create it in the Form Builder first.");
+                    return;
+                }
+
+                // Parse schemaJson if it's a string
+                let parsedSchema = schema.schemaJson;
+                if (typeof parsedSchema === 'string') {
+                    try {
+                        parsedSchema = JSON.parse(parsedSchema);
+                    } catch (e) {
+                        console.error("Failed to parse form schema JSON", e);
+                        setError("Invalid form schema definition.");
+                        return;
+                    }
+                }
+                setFormSchema(parsedSchema);
+
+                // 2. Fetch Existing Data if Editing
+                if (editId) {
+                    const bureau = await getBureauById(editId);
+
+                    // Map bureau data to form field IDs
+                    const mappedData: any = {};
+
+                    if (parsedSchema.fields) {
+                        parsedSchema.fields.forEach((field: any) => {
+                            const label = field.label?.toLowerCase();
+
+                            // Map based on label matching
+                            if (label?.includes('code') || label?.includes('abbreviation')) {
+                                mappedData[field.id] = bureau.code;
+                            } else if (label?.includes('name') && !label?.includes('code')) {
+                                mappedData[field.id] = bureau.name;
+                            } else if (label?.includes('description') || label?.includes('details')) {
+                                mappedData[field.id] = bureau.description || '';
+                            }
+                        });
+                    }
+
+                    setInitialData(mappedData);
+                }
+            } catch (err: any) {
+                console.error("Error loading form resources:", err);
+                setError(err.message || "Failed to load form resources");
+            } finally {
+                setLoading(false);
             }
         };
 
-        console.log(editId ? "Mock API Call - Update Sector:" : "Mock API Call - Register Sector:", payload);
-        alert(editId ? "Bureau Updated Successfully! (Check Console)" : "Bureau Registered Successfully! (Check Console)");
-        router.push("/admin/sectors");
+        loadResources();
+    }, [editId]);
+
+    const handleSubmit = async (formData: any) => {
+        try {
+            if (editId) {
+                // For updates, add the ID to formData and use the same form-based endpoint
+                const updateData = { ...formData, id: editId };
+                await createBureauFromForm(updateData, undefined, formSchema);
+                alert('Bureau updated successfully');
+            } else {
+                // Use backend-driven form submission with field mapping
+                await createBureauFromForm(formData, undefined, formSchema);
+                alert('Bureau created successfully');
+            }
+            router.push("/admin/sectors");
+        } catch (err: any) {
+            console.error(err);
+            alert("Failed to save bureau: " + err.message);
+        }
     };
 
+    if (loading) {
+        return <div className="p-8 text-center text-slate-500">Loading form...</div>;
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 text-center">
+                <div className="text-red-500 font-bold mb-2">Error</div>
+                <div className="text-slate-600">{error}</div>
+                <Link href="/admin/sectors" className="text-primary hover:underline mt-4 inline-block">
+                    Return to List
+                </Link>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center gap-4">
                 <Link href="/admin/sectors" className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
                     <ArrowLeft size={20} />
@@ -53,86 +123,34 @@ function SectorForm() {
                         {editId ? "Edit Bureau" : "Register New Bureau"}
                     </h1>
                     <p className="text-slate-500 text-sm">
-                        {editId ? `Updating configuration for ${existingSector?.name.en}` : "Add a new government sector to the registry."}
+                        {editId ? "Update bureau details" : "Add a new government bureau to the registry."}
                     </p>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-6">
-                    <div className="flex items-center gap-4 text-primary border-b pb-4 mb-4">
-                        <div className="bg-blue-50 p-2 rounded-lg">
-                            <Building2 size={24} />
-                        </div>
-                        <h2 className="text-lg font-bold text-slate-800">Bureau Details</h2>
+            <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-4 text-primary border-b pb-4 mb-6">
+                    <div className="bg-blue-50 p-2 rounded-lg">
+                        <Building2 size={24} />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Bureau Name (English) <span className="text-red-500">*</span></label>
-                            <input
-                                {...register("name_en", { required: true })}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
-                                placeholder="e.g. Transport Bureau"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Bureau Name (Afaan Oromo)</label>
-                            <input
-                                {...register("name_om")}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
-                                placeholder="e.g. Biiroo Geejjibaa"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Bureau Name (Amharic)</label>
-                            <input
-                                {...register("name_am")}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
-                                placeholder="e.g. ትራንስፖርት ቢሮ"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Bureau Code <span className="text-red-500">*</span></label>
-                            <input
-                                {...register("code", { required: true })}
-                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none uppercase font-mono"
-                                placeholder="e.g. OTB"
-                            />
-                            <p className="text-xs text-slate-400 mt-1">Unique identifier (3-5 letters)</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                        <textarea
-                            {...register("description_en")}
-                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none min-h-[100px]"
-                            placeholder="Brief description of the bureau's mandate..."
-                        />
-                    </div>
+                    <h2 className="text-lg font-bold text-slate-800">Bureau Details</h2>
                 </div>
 
-                <div className="flex justify-end">
-                    <button
-                        type="submit"
-                        className="bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg"
-                    >
-                        <Save size={20} />
-                        {editId ? "Update Bureau" : "Register Bureau"}
-                    </button>
-                </div>
-            </form>
+                {formSchema && (
+                    <DynamicFormRenderer
+                        schema={formSchema}
+                        initialData={initialData}
+                        onSubmit={handleSubmit}
+                    />
+                )}
+            </div>
         </div>
     );
 }
 
 export default function NewSectorPage() {
     return (
-        <React.Suspense fallback={<div className="p-8 text-center text-slate-500 italic">Loading form...</div>}>
+        <React.Suspense fallback={<div className="p-8 text-center text-slate-500 italic">Loading...</div>}>
             <SectorForm />
         </React.Suspense>
     );

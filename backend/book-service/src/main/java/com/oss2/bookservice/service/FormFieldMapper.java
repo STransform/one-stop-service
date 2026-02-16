@@ -29,7 +29,6 @@ public class FormFieldMapper {
      * Maps form submission data to a Book entity using schema definition
      */
     public Book mapToBook(Map<String, Object> formData, String schemaJson) {
-        // Log received keys for debugging
         System.out.println("DEBUG: FormFieldMapper received keys: " + formData.keySet());
 
         // Build label-to-ID mapping from schema if provided

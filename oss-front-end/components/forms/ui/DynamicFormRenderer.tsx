@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface FormField {
     id: string;
@@ -19,14 +19,23 @@ interface DynamicFormRendererProps {
     schema: FormSchema;
     onSubmit: (data: Record<string, any>) => void;
     submitButtonText?: string;
+    initialData?: Record<string, any>;  // Add initialData prop
 }
 
 const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({
     schema,
     onSubmit,
-    submitButtonText = 'Submit Form'
+    submitButtonText = 'Submit Form',
+    initialData = {}  // Accept initialData with default empty object
 }) => {
-    const [formData, setFormData] = useState<Record<string, any>>({});
+    const [formData, setFormData] = useState<Record<string, any>>(initialData);  // Initialize with initialData
+
+    // Update formData when initialData changes (for async loading)
+    useEffect(() => {
+        if (initialData && Object.keys(initialData).length > 0) {
+            setFormData(initialData);
+        }
+    }, [initialData]);
 
     // Extract fields from schema
     const fields = schema?.fields || [];

@@ -133,11 +133,10 @@ public class BookController {
             // Map form data to Book entity using schema for label lookup
             Book book = formFieldMapper.mapToBook(formData, schemaJson);
             
-            // Validate required fields (Optional: We now allow partial data with defaults)
+
             java.util.List<String> errors = formFieldMapper.getValidationErrors(book);
             if (!errors.isEmpty()) {
                 System.out.println("WARN: Missing fields: " + errors + ". Using defaults for Book creation.");
-                // We proceed to save even if fields are missing, because FormFieldMapper has applied defaults.
             }
             
             // Save the book
